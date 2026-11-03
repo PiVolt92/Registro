@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Control Docente - Gestión Integral</title>
+  <style>
+    :root {
+      --bg: #091326;
+      --card: #0f2042;
+      --card-hover: #142a56;
+      --border: #1e3a6d;
+      --primary: #2563eb;
+      --primary-glow: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --text: #f0f6ff;
+      --muted: #8da4c4;
+      --presente: #10b981;
+      --ausente: #ef4444;
+      --tarde: #f59e0b;
+      --input-bg: #060d1a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); padding: 12px; padding-bottom: 95px; }
+
+    /* Barra Superior Azul */
+    header {
+      background: linear-gradient(135deg, #0f2042 0%, #1e3a6d 100%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 15px rgba(15, 32, 66, 0.5);
+    }
+    .brand-wrap { display: flex; align-items: center; gap: 8px; }
+    .brand-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: rgba(37, 99, 235, 0.25); border: 1px solid var(--primary-glow);
+      display: flex; align-items: center; justify-content: center;
+      color: #60a5fa; font-size: 1.1rem;
+    }
+    .brand-title { font-size: 1.05rem; font-weight: 700; color: #fff; }
+
+    .header-btns { display: flex; align-items: center; gap: 6px; }
+    .btn-top {
+      background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e0e7ff; padding: 7px 11px; border-radius: 8px; font-size: 0.78rem;
+      font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
+    .btn-top:active { background: rgba(255, 255, 255, 0.18); }
+    .btn-top:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-undo-style { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #93c5fd; }
+
+    /* Barra de Indicador de Estado */
+    .status-banner {
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+    }
+    .status-text { color: #38bdf8; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+    .count-text { color: var(--muted); font-size: 0.75rem; }
+
+    /* Panel de Selección */
+    .panel-azul {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .input-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
+    select, input[type="date"] {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      outline: none;
+      width: 100%;
+    }
+    select:focus, input[type="date"]:focus { border-color: var(--primary-glow); }
+
+    /* Barra de Estadísticas */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px;
+      text-align: center;
+    }
+    .stat-val { font-size: 1.3rem; font-weight: 800; display: block; }
+    .stat-lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+    .val-p { color: var(--presente); }
+    .val-a { color: var(--ausente); }
+    .val-t { color: var(--tarde); }
+
+    /* Lista de Alumnos Modificable */
+    .alumnos-list { display: flex; flex-direction: column; gap: 8px; }
+    .alumno-row {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s;
+    }
+    .alumno-row:active { background: var(--card-hover); }
+    .alumno-info { flex: 1; min-width: 0; }
+    
+    /* Nombre editable con un clic */
+    .alumno-name-input {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      width: 100%;
+      border-radius: 6px;
+      padding: 2px 4px;
+      outline: none;
+    }
+    .alumno-name-input:focus {
+      background: var(--input-bg);
+      border-color: var(--primary-glow);
+    }
+    .alumno-sub { font-size: 0.72rem; color: var(--muted); margin-top: 1px; padding-left: 4px; }
+
+    .alumno-ctrls { display: flex; align-items: center; gap: 6px; }
+
+    .input-nota {
+      width: 46px; height: 44px; text-align: center;
+      background: var(--input-bg); border: 1px solid var(--border);
+      border-radius: 8px; color: #fff; font-size: 1.05rem; font-weight: 700;
+      outline: none;
+    }
+    .input-nota:focus { border-color: var(--accent-cyan); box-shadow: 0 0 8px rgba(6, 182, 212, 0.3); }
+
+    .btn-asist {
+      width: 46px; height: 44px; border-radius: 8px; border: none;
+      font-weight: 800; font-size: 1.1rem; color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .st-P { background-color: var(--presente); box-shadow: 0 0 10px rgba(16, 185, 129, 0.25); }
+    .st-A { background-color: var(--ausente); box-shadow: 0 0 10px rgba(239, 68, 68, 0.25); }
+    .st-T { background-color: var(--tarde); color: #000; box-shadow: 0 0 10px rgba(245, 158, 11, 0.25); }
+
+    .btn-delete-row {
+      background: transparent; border: none; color: #ef4444; font-size: 1.1rem;
+      padding: 6px; cursor: pointer; opacity: 0.6;
+    }
+    .btn-delete-row:active { opacity: 1; }
+
+    /* Barra Inferior Flotante */
+    .bottom-dock {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(9, 19, 38, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1.2fr;
+      gap: 8px;
+      z-index: 50;
+    }
+    .btn-action {
+      padding: 12px 6px; border-radius: 9px; border: none;
+      font-weight: 700; font-size: 0.82rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .btn-add { background: var(--card); color: #e2e8f0; border: 1px solid var(--border); }
+    .btn-import { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: 1px solid #38bdf8; }
+    .btn-export { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #fff; border: 1px solid #60a5fa; }
+
+    /* Input oculto para subir Excel */
+    #inputExcelFile { display: none; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%);
+      background: #0284c7; color: #fff; padding: 8px 16px; border-radius: 30px;
+      font-size: 0.8rem; font-weight: 600; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <header>
+    <div class="brand-wrap">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-title">Control Docente</div>
+    </div>
+    <div class="header-btns">
+      <button class="btn-top btn-undo-style" id="btnUndo" onclick="deshacer()" disabled title="Deshacer cambio">
+        ↩ Deshacer
+      </button>
+    </div>
+  </header>
+
+  <!-- Indicador de Estado en Vivo -->
+  <div class="status-banner">
+    <div class="status-text">
+      <div class="status-dot"></div>
+      <span id="txtIndicador">Sistema Listo</span>
+    </div>
+    <div class="count-text" id="txtTotalAlumnos">0 alumnos</div>
+  </div>
+
+  <!-- Filtro de Materia y Fecha -->
+  <div class="panel-azul">
+    <div class="input-group">
+      <label>Día / Materia / Escuela</label>
+      <select id="selMateria" onchange="cambiarMateria()">
+        <option value="lun_tec5_so">Lunes: Lab. Sistemas Operativos (4° - Técnica 5)</option>
+        <option value="mar_tec2_mpe">Martes: Montaje de Proyectos (4° - Técnica 2 Hurlingham)</option>
+        <option value="mar_tec1_ea">Martes: Electrónica Analógica (4° - Técnica 1)</option>
+        <option value="mie_tec2_das">Miércoles: DAS (5° - Técnica 2 Hurlingham)</option>
+        <option value="mie_tec1_ea">Miércoles: Electrónica Analógica (4° - Técnica 1)</option>
+        <option value="vie_tec1_mpe">Viernes Noche: Montaje de Proyectos (4° 3° - Técnica 1)</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>Fecha de Clase</label>
+      <input type="date" id="fechaClase" onchange="renderAlumnos()">
+    </div>
+  </div>
+
+  <!-- Estadísticas de Asistencia -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-val val-p" id="cntP">0</span>
+      <span class="stat-lbl">Presentes</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val val-a" id="cntA">0</span>
+      <span class="stat-lbl">Ausentes</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val val-t" id="cntT">0</span>
+      <span class="stat-lbl">Tardes</span>
+    </div>
+  </div>
+
+  <!-- Lista de Alumnos Modificables -->
+  <main class="alumnos-list" id="lista"></main>
+
+  <!-- Barra Inferior Flotante -->
+  <div class="bottom-dock">
+    <button class="btn-action btn-add" onclick="agregarAlumno()">+ Alumno</button>
+    <button class="btn-action btn-import" onclick="document.getElementById('inputExcelFile').click()">📂 Cargar Excel</button>
+    <button class="btn-action btn-export" onclick="descargarExcel()">📥 Descargar</button>
+  </div>
+
+  <!-- Selector oculto de archivo Excel/CSV -->
+  <input type="file" id="inputExcelFile" accept=".csv, .txt, .xlsx, .xls" onchange="procesarArchivoExcel(event)">
+
+  <div id="toast"></div>
+
+  <script>
+    // Listas iniciales con nombres modificables
+    const baseInicial = {
+      "lun_tec5_so": [
+        { id: 1, nombre: "Álvarez, Lucas", estado: "P", nota: "" },
+        { id: 2, nombre: "Benítez, Diego", estado: "P", nota: "" },
+        { id: 3, nombre: "Castillo, Ramiro", estado: "A", nota: "" }
+      ],
+      "mar_tec2_mpe": [
+        { id: 4, nombre: "Díaz, Franco", estado: "P", nota: "" },
+        { id: 5, nombre: "Fernández, Tomás", estado: "P", nota: "" }
+      ],
+      "mar_tec1_ea": [
+        { id: 6, nombre: "García, Juan", estado: "P", nota: "" },
+        { id: 7, nombre: "López, Matías", estado: "P", nota: "" }
+      ],
+      "mie_tec2_das": [
+        { id: 8, nombre: "Martínez, Axel", estado: "P", nota: "" },
+        { id: 9, nombre: "Navarro, Bruno", estado: "P", nota: "" }
+      ],
+      "mie_tec1_ea": [
+        { id: 10, nombre: "Pérez, Gonzalo", estado: "P", nota: "" },
+        { id: 11, nombre: "Romero, Kevin", estado: "P", nota: "" }
+      ],
+      "vie_tec1_mpe": [
+        { id: 12, nombre: "Acosta, Mateo", estado: "P", nota: "" },
+        { id: 13, nombre: "Cardozo, Sofía", estado: "P", nota: "" },
+        { id: 14, nombre: "Sosa, Valentín", estado: "P", nota: "" }
+      ]
+    };
+
+    let base = JSON.parse(localStorage.getItem("registro_docente_azul_excel")) || baseInicial;
+    let historial = [];
+
+    document.getElementById("fechaClase").value = new Date().toISOString().split("T")[0];
+    let materiaActual = document.getElementById("selMateria").value;
+
+    function renderAlumnos() {
+      const contenedor = document.getElementById("lista");
+      contenedor.innerHTML = "";
+      const lista = base[materiaActual] || [];
+
+      let cp = 0, ca = 0, ct = 0;
+
+      lista.forEach((al, idx) => {
+        if (al.estado === "P") cp++;
+        if (al.estado === "A") ca++;
+        if (al.estado === "T") ct++;
+
+        const row = document.createElement("div");
+        row.className = "alumno-row";
+        row.innerHTML = `
+          <div class="alumno-info">
+            <input type="text" class="alumno-name-input" value="${al.nombre}" 
+                   onchange="editarNombreAlumno(this.value, ${idx})" title="Tocá para modificar el nombre">
+            <div class="alumno-sub">#${idx + 1} • ${al.estado === 'P' ? 'Presente' : al.estado === 'A' ? 'Ausente' : 'Tarde'}</div>
+          </div>
+          <div class="alumno-ctrls">
+            <input type="text" 
+                   class="input-nota" 
+                   inputmode="numeric" 
+                   placeholder="-" 
+                   value="${al.nota || ''}" 
+                   onfocus="this.dataset.old = this.value"
+                   onchange="modificarNota(this, ${idx})">
+            <button class="btn-asist st-${al.estado}" 
+                    onclick="cambiarAsistencia(${idx})">${al.estado}</button>
+            <button class="btn-delete-row" onclick="eliminarAlumno(${idx})" title="Eliminar alumno">&times;</button>
+          </div>
+        `;
+        contenedor.appendChild(row);
+      });
+
+      // Indicadores visuales
+      document.getElementById("cntP").textContent = cp;
+      document.getElementById("cntA").textContent = ca;
+      document.getElementById("cntT").textContent = ct;
+      document.getElementById("txtTotalAlumnos").textContent = `${lista.length} alumnos`;
+
+      localStorage.setItem("registro_docente_azul_excel", JSON.stringify(base));
+      document.getElementById("btnUndo").disabled = (historial.length === 0);
+    }
+
+    function editarNombreAlumno(nuevoNombre, idx) {
+      if (nuevoNombre.trim() !== "") {
+        base[materiaActual][idx].nombre = nuevoNombre.trim();
+        actualizarIndicador("Nombre modificado");
+        guardarLocal();
+      }
+    }
+
+    function cambiarAsistencia(idx) {
+      const ciclo = ["P", "A", "T"];
+      const alumno = base[materiaActual][idx];
+      const estadoViejo = alumno.estado;
+      const estadoNuevo = ciclo[(ciclo.indexOf(estadoViejo) + 1) % ciclo.length];
+
+      historial.push({
+        tipo: "asistencia",
+        materia: materiaActual,
+        idx: idx,
+        anterior: estadoViejo,
+        nombre: alumno.nombre
+      });
+
+      alumno.estado = estadoNuevo;
+      actualizarIndicador(`${alumno.nombre}: ${estadoNuevo}`);
+      renderAlumnos();
+    }
+
+    function modificarNota(input, idx) {
+      const alumno = base[materiaActual][idx];
+      const notaVieja = input.dataset.old || alumno.nota || "";
+      let val = input.value.trim().replace(",", ".");
+
+      if (val === "") {
+        if (notaVieja !== "") {
+          historial.push({ tipo: "nota", materia: materiaActual, idx: idx, anterior: notaVieja, nombre: alumno.nombre });
+          alumno.nota = "";
+          actualizarIndicador(`Nota borrada: ${alumno.nombre}`);
+          renderAlumnos();
+        }
+        return;
+      }
+
+      let n = parseFloat(val);
+      if (isNaN(n) || n < 1 || n > 10) {
+        toast("⚠️ Nota inválida (ingrese 1 a 10)");
+        input.value = notaVieja;
+      } else {
+        const nStr = n.toString();
+        if (nStr !== notaVieja) {
+          historial.push({ tipo: "nota", materia: materiaActual, idx: idx, anterior: notaVieja, nombre: alumno.nombre });
+          alumno.nota = nStr;
+          actualizarIndicador(`Nota de ${alumno.nombre}: ${nStr}`);
+          renderAlumnos();
+        }
+      }
+    }
+
+    function deshacer() {
+      if (historial.length === 0) return;
+      const accion = historial.pop();
+
+      if (accion.tipo === "asistencia") {
+        base[accion.materia][accion.idx].estado = accion.anterior;
+        toast(`↩ ${accion.nombre}: volvió a ${accion.anterior}`);
+      } else if (accion.tipo === "nota") {
+        base[accion.materia][accion.idx].nota = accion.anterior;
+        toast(`↩ ${accion.nombre}: nota restaurada`);
+      }
+      actualizarIndicador("Acción deshecha");
+      renderAlumnos();
+    }
+
+    function cambiarMateria() {
+      materiaActual = document.getElementById("selMateria").value;
+      actualizarIndicador("Materia cambiada");
+      renderAlumnos();
+    }
+
+    function agregarAlumno() {
+      const nom = prompt("Apellido y Nombre del nuevo estudiante:");
+      if (nom && nom.trim()) {
+        if (!base[materiaActual]) base[materiaActual] = [];
+        base[materiaActual].push({ id: Date.now(), nombre: nom.trim(), estado: "P", nota: "" });
+        actualizarIndicador(`Alumno agregado: ${nom.trim()}`);
+        renderAlumnos();
+      }
+    }
+
+    function eliminarAlumno(idx) {
+      const nom = base[materiaActual][idx].nombre;
+      if (confirm(`¿Eliminar a ${nom} de la lista?`)) {
+        base[materiaActual].splice(idx, 1);
+        actualizarIndicador(`Eliminado: ${nom}`);
+        renderAlumnos();
+      }
+    }
+
+    // CARGAR ARCHIVO EXCEL O CSV DIRECTAMENTE
+    function procesarArchivoExcel(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lineas = text.split(/\r?\n/);
+        const nuevosAlumnos = [];
+
+        lineas.forEach(linea => {
+          let limpio = linea.trim();
+          if (!limpio) return;
+
+          // Ignorar encabezados comunes si existen
+          if (limpio.toLowerCase().includes("apellido") || limpio.toLowerCase().includes("alumno") || limpio.toLowerCase().includes("nombre")) {
+            return;
+          }
+
+          // Separar por comas, punto y coma o tabulación
+          let cols = limpio.split(/[,;\t]/);
+          let nombre = cols[0].replace(/["']/g, "").trim();
+
+          // Si viene con número de orden al principio (ej: "1, Gómez Lucas")
+          if (!isNaN(nombre) && cols.length > 1) {
+            nombre = cols[1].replace(/["']/g, "").trim();
+          }
+
+          if (nombre) {
+            nuevosAlumnos.push({
+              id: Date.now() + Math.random(),
+              nombre: nombre,
+              estado: "P",
+              nota: cols[2] && !isNaN(cols[2]) ? cols[2].trim() : ""
+            });
+          }
+        });
+
+        if (nuevosAlumnos.length > 0) {
+          base[materiaActual] = nuevosAlumnos;
+          actualizarIndicador(`✅ ${nuevosAlumnos.length} alumnos cargados desde archivo`);
+          renderAlumnos();
+          toast(`¡Cargados ${nuevosAlumnos.length} estudiantes!`);
+        } else {
+          toast("No se detectaron nombres en el archivo");
+        }
+      };
+
+      reader.readAsText(file, "UTF-8");
+      event.target.value = ""; // reset
+    }
+
+    // DESCARGAR PLANILLA PARA EXCEL
+    function descargarExcel() {
+      const lista = base[materiaActual] || [];
+      const fecha = document.getElementById("fechaClase").value;
+      const sel = document.getElementById("selMateria");
+      const nombreMateria = sel.options[sel.selectedIndex].text;
+
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM para compatibilidad con Excel
+      csvContent += `Planilla: ${nombreMateria}\n`;
+      csvContent += `Fecha: ${fecha}\n\n`;
+      csvContent += "N°,Apellido y Nombre,Asistencia,Calificacion\n";
+
+      lista.forEach((al, i) => {
+        let est = al.estado === "P" ? "Presente" : al.estado === "A" ? "Ausente" : "Tarde";
+        csvContent += `${i + 1},"${al.nombre}",${est},${al.nota || "-"}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Planilla_${fecha}_${materiaActual}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      actualizarIndicador("Planilla descargada en CSV/Excel");
+      toast("📥 Descargando archivo para Excel...");
+    }
+
+    function actualizarIndicador(texto) {
+      document.getElementById("txtIndicador").textContent = texto;
+    }
+
+    function guardarLocal() {
+      localStorage.setItem("registro_docente_azul_excel", JSON.stringify(base));
+    }
+
+    function toast(txt) {
+      const t = document.getElementById("toast");
+      t.textContent = txt;
+      t.style.opacity = "1";
+      setTimeout(() => { t.style.opacity = "0"; }, 2000);
+    }
+
+    renderAlumnos();
+  </script>
+</body>
+</html>
